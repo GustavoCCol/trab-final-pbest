@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Classificação de Evasão e Sucesso Acadêmico</title>
+  <style>
+    :root {
+      --bg: #f3f5f8;
+      --card: #ffffff;
+      --primary: #1e40af;
+      --primary-hover: #1e3a8a;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #d1d5db;
+    }
+
+    * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 24px 16px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      background: var(--card);
+      max-width: 900px;
+      width: 100%;
+      padding: 28px 32px;
+      border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    }
+
+    h1 { margin: 0 0 6px; font-size: 1.5rem; color: #111827; }
+    p.subtitle { margin: 0 0 24px; color: var(--muted); font-size: 0.92rem; }
+
+    fieldset {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 16px 20px 20px;
+      margin-bottom: 20px;
+    }
+
+    legend {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--primary);
+      padding: 0 8px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 16px;
+    }
+
+    .field { display: flex; flex-direction: column; }
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #374151;
+    }
+
+    input, select {
+      padding: 9px 11px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.92rem;
+      background: #fff;
+    }
+
+    input:focus, select:focus { outline: none; border-color: var(--primary); }
+
+    .actions { display: flex; gap: 12px; margin-top: 8px; }
+
+    button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button[type="submit"] { background-color: var(--primary); color: #fff; flex: 2; }
+    button[type="submit"]:hover { background-color: var(--primary-hover); }
+    button[type="reset"] { background-color: #e5e7eb; color: #374151; flex: 1; }
+    button[type="reset"]:hover { background-color: #d1d5db; }
+
+    /* Painel das 3 Opções de Classificação */
+    #resultado {
+      margin-top: 28px;
+      display: none;
+      padding-top: 20px;
+      border-top: 2px solid #e5e7eb;
+    }
+
+    #resultado h3 {
+      margin: 0 0 14px;
+      font-size: 1.1rem;
+      color: #111827;
+    }
+
+    .classes-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    @media (max-width: 650px) {
+      .classes-grid { grid-template-columns: 1fr; }
+    }
+
+    .class-card {
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      opacity: 0.45;
+      transition: all 0.25s ease;
+    }
+
+    .class-card.active {
+      opacity: 1;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+    }
+
+    .class-card h4 { margin: 0 0 6px; font-size: 1.05rem; }
+    .class-card p { margin: 0; font-size: 0.85rem; color: #4b5563; }
+
+    /* Cores específicas de cada classe */
+    #card-dropout.active { border-color: #dc2626; background: #fef2f2; }
+    #card-dropout.active h4 { color: #b91c1c; }
+
+    #card-enrolled.active { border-color: #d97706; background: #fffbeb; }
+    #card-enrolled.active h4 { color: #b45309; }
+
+    #card-graduate.active { border-color: #16a34a; background: #f0fdf4; }
+    #card-graduate.active h4 { color: #15803d; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Classificação de Estudante</h1>
+  <p class="subtitle">Preencha os dados para classificar o estudante em uma das 3 categorias do modelo.</p>
+
+  <form id="dropoutForm">
+    <fieldset>
+      <legend>1. Dados Pessoais</legend>
+      <div class="grid">
+        <div class="field">
+          <label for="age">Idade na Matrícula</label>
+          <input type="number" id="age" name="age" min="16" max="80" value="19" required>
+        </div>
+
+        <div class="field">
+          <label for="gender">Gênero</label>
+          <select id="gender" name="gender" required>
+            <option value="1">Masculino</option>
+            <option value="0">Feminino</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="nacionality">Nacionalidade</label>
+          <select id="nacionality" name="nacionality" required>
+            <option value="1">Nativo / Local</option>
+            <option value="2">Estrangeiro</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="displaced">Mora Fora de Casa (Displaced)</label>
+          <select id="displaced" name="displaced" required>
+            <option value="0">Não</option>
+            <option value="1">Sim</option>
+          </select>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>2. Contexto Familiar e Financeiro</legend>
+      <div class="grid">
+        <div class="field">
+          <label for="mother_qual">Qualificação da Mãe</label>
+          <select id="mother_qual" name="mother_qual" required>
+            <option value="1">Ensino Médio</option>
+            <option value="2">Ensino Superior</option>
+            <option value="3">Pós-Graduação</option>
+            <option value="19">Ensino Fundamental</option>
+            <option value="34">Desconhecido</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="father_qual">Qualificação do Pai</label>
+          <select id="father_qual" name="father_qual" required>
+            <option value="1">Ensino Médio</option>
+            <option value="2">Ensino Superior</option>
+            <option value="3">Pós-Graduação</option>
+            <option value="19">Ensino Fundamental</option>
+            <option value="34">Desconhecido</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="occupation">Ocupação do Estudante</label>
+          <select id="occupation" name="occupation" required>
+            <option value="0">Apenas Estudante</option>
+            <option value="1">Trabalhador Tempo Integral</option>
+            <option value="2">Meio Período / Estágio</option>
+            <option value="3">Desempregado</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="income">Renda Média Familiar (R$)</label>
+          <input type="number" id="income" name="income" min="0" step="100" value="2500" required>
+        </div>
+
+        <div class="field">
+          <label for="debtor">Inadimplente (Debtor)</label>
+          <select id="debtor" name="debtor" required>
+            <option value="0">Não</option>
+            <option value="1">Sim</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="tuition">Mensalidades em Dia</label>
+          <select id="tuition" name="tuition" required>
+            <option value="1">Sim</option>
+            <option value="0">Não</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="scholarship">Bolsista</label>
+          <select id="scholarship" name="scholarship" required>
+            <option value="0">Não</option>
+            <option value="1">Sim</option>
+          </select>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>3. Curso e Desempenho</legend>
+      <div class="grid">
+        <div class="field">
+          <label for="course">Curso</label>
+          <select id="course" name="course" required>
+            <option value="9119">Engenharia Informática / Computação</option>
+            <option value="9147">Gestão / Administração</option>
+            <option value="9500">Enfermagem</option>
+            <option value="9003">Agronomia</option>
+            <option value="9773">Jornalismo e Comunicação</option>
+            <option value="9238">Serviço Social</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="attendance">Turno</label>
+          <select id="attendance" name="attendance" required>
+            <option value="1">Diurno</option>
+            <option value="0">Noturno</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="approved">Disciplinas Aprovadas (1º Sem.)</label>
+          <input type="number" id="approved" name="approved" min="0" max="20" value="5" required>
+        </div>
+
+        <div class="field">
+          <label for="grade">Média das Notas (0 a 20)</label>
+          <input type="number" id="grade" name="grade" min="0" max="20" step="0.1" value="13.0" required>
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="actions">
+      <button type="submit">Classificar Estudante</button>
+      <button type="reset">Limpar</button>
+    </div>
+  </form>
+
+  <!-- Resultado com apenas as 3 classes possíveis -->
+  <div id="resultado">
+    <h3>Resultado da Classificação (3 Classes):</h3>
+    <div class="classes-grid">
+      <div id="card-dropout" class="class-card">
+        <h4>Dropout</h4>
+        <p>Evasão / Desistência</p>
+      </div>
+
+      <div id="card-enrolled" class="class-card">
+        <h4>Enrolled</h4>
+        <p>Matriculado / Em Curso</p>
+      </div>
+
+      <div id="card-graduate" class="class-card">
+        <h4>Graduate</h4>
+        <p>Concluinte / Formado</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const form = document.getElementById('dropoutForm');
+  const resultado = document.getElementById('resultado');
+  const cards = document.querySelectorAll('.class-card');
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const debtor = parseInt(document.getElementById('debtor').value, 10);
+    const tuition = parseInt(document.getElementById('tuition').value, 10);
+    const approved = parseInt(document.getElementById('approved').value, 10);
+    const grade = parseFloat(document.getElementById('grade').value);
+
+    // Reseta destaque dos 3 cartões
+    cards.forEach(card => card.classList.remove('active'));
+
+    
+    let classePredita = 'graduate';
+    //APENAS PROVISORES (TROCAR PELO MODELO DE MACHINE LEARNING)
+    if (debtor === 1 || tuition === 0 || approved <= 2 || grade < 10) {
+      classePredita = 'dropout';
+    } else if (approved <= 4 || grade < 12) {
+      classePredita = 'enrolled';
+    }
+    //APENAS PROVISORES (TROCAR PELO MODELO DE MACHINE LEARNING)
+
+
+    document.getElementById(`card-${classePredita}`).classList.add('active');
+    resultado.style.display = 'block';
+    resultado.scrollIntoView({ behavior: 'smooth' });
+  });
+
+  form.addEventListener('reset', function() {
+    resultado.style.display = 'none';
+    cards.forEach(card => card.classList.remove('active'));
+  });
+</script>
+
+</body>
+</html>
